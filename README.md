@@ -1,6 +1,11 @@
 # KDD-Cup99
-KDD99数据集是从一个模拟的美国空军局域网上采集来的9个星期的网络连接数据, 分成具有标识的训练数据和未加标识的测试数据。KDD99数据集中每条纪录用41个特征来描述，加上最后的标记，一共有42项。其中前41 项特征分为4大类。
-
 本次代码使用以下几种方法实现了二分类和三分类。其中二分类将分为normal类和abnormal类，三分类分为normal类、smurf类和其他类。包含的代码文件主要任务如下：   
 + 数据预处理：将字符型数据映射为离散型；
-+ 朴素贝叶斯、KNN、AdaBoost、SVM、XGBoost、Bagging、随机森林、决策树、DNN相关代码实现
++ 朴素贝叶斯、KNN、AdaBoost、SVM、XGBoost、Bagging、随机森林、决策树、DNN相关代码实现    
+
+代码功能为：
+1. utils.py:Preprocess data;   
+2. 11_intrusion_detection.py:Classical methods for binary classification; 
+3. 11_three_class.py:Classical methods for three classification; 
+4. two_class_nn.py:Neural network for binary classification;
+5. three_class_nn.py:Neural network for three classification;
