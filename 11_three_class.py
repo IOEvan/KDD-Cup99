@@ -16,7 +16,9 @@ from sklearn.preprocessing import label_binarize
 import pickle
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA as sklearnPCA
+from xgboost import XGBClassifier, XGBRFClassifier
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.preprocessing import StandardScaler
 
 class IntrusionDetector:
 
@@ -90,13 +92,23 @@ class IntrusionDetector:
         #nominal features: ["protocol_type", "service", "flag"]
         self.train_kdd_nominal = self.train_kdd_data[nominal_features].astype(float)
         self.test_kdd_nominal = self.test_kdd_data[nominal_features].astype(float)
+        # normalize
+        # self.train_kdd_nominal = StandardScaler().fit_transform(self.train_kdd_nominal)
+        # self.test_kdd_nominal = StandardScaler().fit_transform(self.test_kdd_nominal)
+
 
         self.train_kdd_binary = self.train_kdd_data[binary_features].astype(float)
         self.test_kdd_binary = self.test_kdd_data[binary_features].astype(float)
+        # normalize
+        # self.train_kdd_binary = StandardScaler().fit_transform(self.train_kdd_binary)
+        # self.test_kdd_binary = StandardScaler().fit_transform(self.test_kdd_binary)
 
         # Standardizing and scaling numeric features
         self.train_kdd_numeric = self.train_kdd_data[numeric_features].astype(float)
         self.test_kdd_numeric = self.test_kdd_data[numeric_features].astype(float)
+        # normalize
+        self.train_kdd_numeric = StandardScaler().fit_transform(self.train_kdd_numeric)
+        self.test_kdd_numeric = StandardScaler().fit_transform(self.test_kdd_numeric)
 
     def feature_reduction_ICA(self):
         pass
@@ -172,6 +184,7 @@ class IntrusionDetector:
         classes = ['normal', 'smurf', 'attack']
         for i in range(3):
             plt.plot(fpr1_gnb[i], tpr1_gnb[i], color=colors[i], lw=2, label='%s Model of %s (area = %0.2f)' %(model_name, classes[i], roc_dict[i]) )
+        
         plt.plot([0, 1], [0, 1], 'r--')
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
@@ -179,22 +192,22 @@ class IntrusionDetector:
         plt.ylabel('True Positive Rate')
         plt.title('Receiver operating characteristic')
         plt.legend(loc="lower right")
-        # plt.savefig('Log_ROC_%s' %model_name)
+        plt.savefig('3_Log_ROC_%s' %model_name)
         plt.show()
     def boost_predicting(self, models, model_name):
         # Predict
         plt.figure()
         for i in range(3):
-            predicts = models[i].predict(self.X_test)
+            predicts = models[i].predict(self.X_test[:50000])
             print("Classifier:")
-            accuracy = accuracy_score(self.y_test, predicts)
+            accuracy = accuracy_score(self.y_test[:50000], predicts)
             print("Accuracy: ", accuracy)
 
-            model_roc_auc = roc_auc_score(self.y_test, predicts)
+            model_roc_auc = roc_auc_score(self.y_test[:50000], predicts)
             print("Auc: ", model_roc_auc)
-            fpr1_gnb, tpr1_gnb, thresholds1_gnb = roc_curve(self.y_test, models[i].predict_proba(self.X_test)[:, 1])
+            fpr1_gnb, tpr1_gnb, thresholds1_gnb = roc_curve(self.y_test[:50000], models[i].predict_proba(self.X_test[:50000])[:, 1])
 
-            con_matrix = confusion_matrix(self.y_test, predicts, labels=[0, 1])
+            con_matrix = confusion_matrix(self.y_test[:50000], predicts, labels=[0, 1])
             # con_matrix = confusion_matrix(y_test, predicts, labels=["normal.", "abnormal."])
             print("confusion matrix:")
             print(con_matrix)
@@ -222,52 +235,87 @@ class IntrusionDetector:
         # plt.savefig('Log_ROC_%s' %model_name)
         plt.show()
     def SGD_Classifier(self):
+
         # Create a model
         model = SGDClassifier(loss="log")
         model.fit(self.X_train, self.y_train)
+
         # Predict
         self.predicting(model, "SGD")
     def bayes_classifier(self):
         model = OneVsRestClassifier(GaussianNB())
+        print(self.y_train.shape)
         model.fit(self.X_train, self.y_train)
+
         # Predict
         self.predicting(model, "CNB")
+
+
     def knn_classifier(self):
-        model = neighbors.KNeighborsClassifier(n_neighbors=3)
+
+        #Load classifier from Pickle
+        # model=pickle.load(open("knearestneighbor.pickle", "rb"))
+        model = OneVsRestClassifier(neighbors.KNeighborsClassifier(n_neighbors=5))
         model.fit(self.X_train, self.y_train)
+        with open('knearestneighbor.pickle','wb') as f:
+            pickle.dump(model,f)
+        print('model trained')
+
         # predict
         self.predicting(model, "KNN")
+
     def svm_classifier(self):
         # Create SVM classification object
-        model = svm.SVC(kernel='rbf', C=0.8, decision_function_shape='ovo', verbose= True, probability=True)
+        model = OneVsRestClassifier(svm.SVC(kernel='rbf', C=0.1, decision_function_shape='ovr', verbose= True, probability=True))
         # model = svm.SVC(kernel='rbf', C=0.8, gamma=20, decision_function_shape='ovr', probability=True)
-        model.fit(self.X_train, self.y_train)
+        model.fit(self.X_train[:50000], self.y_train[:50000])
+
         # Predict Output
         self.predicting(model, 'SVM')
+
+
     def decision_tree_classifier(self):
         model = OneVsRestClassifier(tree.DecisionTreeClassifier(criterion="entropy"))
         model.fit(self.X_train, self.y_train)
-        self.predicting(model, "DTC")
+        self.predicting(model, "ID3_DTC")
     def random_forest_classifier(self):
-        model = ensemble.RandomForestClassifier()
-        print(ensemble.RandomForestClassifier.get_params(model))
+        model = OneVsRestClassifier(ensemble.RandomForestClassifier())
         model.fit(self.X_train, self.y_train)
         self.predicting(model, "RFC")
     def adaboost_classifier(self):
-        model = ensemble.AdaBoostClassifier()
-        print(ensemble.AdaBoostClassifier.get_params(model))
+        model = OneVsRestClassifier(ensemble.AdaBoostClassifier())
         model.fit(self.X_train, self.y_train)
         self.predicting(model, "AdaBoost")
     def bagging_classifier(self):
-        model = ensemble.BaggingClassifier()
-        print(ensemble.BaggingClassifier.get_params(model))
+        model = OneVsRestClassifier(ensemble.BaggingClassifier())
         model.fit(self.X_train, self.y_train)
         self.predicting(model, "bagging")
+    def XGBoost(self):
+        model = OneVsRestClassifier(XGBClassifier())
+        model.fit(self.X_train, self.y_train)
+        self.predicting(model, "XGBoost")
+    def gradient_boosting_classifier(self):
+        model = OneVsRestClassifier(ensemble.GradientBoostingClassifier())
+        model.fit(self.X_train, self.y_train)
+        self.predicting(model, "grad_boost")
+    def xgb_rf_classifier(self):
+        model = OneVsRestClassifier(XGBRFClassifier())
+        model.fit(self.X_train, self.y_train)
+        self.predicting(model, "XGBRF")
+    def Boost(self):
+        model1 = OneVsRestClassifier(XGBClassifier())
+        model1.fit(self.X_train, self.y_train)
+        model2 = OneVsRestClassifier(ensemble.GradientBoostingClassifier())
+        model2.fit(self.X_train, self.y_train)
+        model3 = OneVsRestClassifier(XGBRFClassifier())
+        model3.fit(self.X_train, self.y_train)
+
+        self.boost_predicting([model1, model2, model3], ["XGBoost", "grad_boost", "XGBRF"])
 def main():
     # Data path
     cwd = os.getcwd()  # current directory path
-    kdd_data_path_train = "three_kddcup.data_10_percent_corrected.csv"
-    kdd_data_path_test = "three_corrected.csv"
+    kdd_data_path_train = cwd + "/three_kddcup.data_10_percent_corrected.csv"
+    kdd_data_path_test = cwd + "/three_corrected.csv"
 
     i_detector = IntrusionDetector(kdd_data_path_train, kdd_data_path_test)
     i_detector.preprocessor()
@@ -315,6 +363,14 @@ def main():
             i_detector.adaboost_classifier()
         elif option == "7":
             i_detector.bagging_classifier()
+        elif option == "8":
+            i_detector.XGBoost()
+        elif option == "9":
+            i_detector.gradient_boosting_classifier()
+        elif option == "10":
+            i_detector.xgb_rf_classifier()
+        elif option == "11":
+            i_detector.Boost()
 
         elif option == "12":
             break
