@@ -9,3 +9,8 @@
 3. 11_three_class.py:Classical methods for three classification; 
 4. two_class_nn.py:Neural network for binary classification;
 5. three_class_nn.py:Neural network for three classification;
+
+# Reference:  
+[KDD CUP99数据集预处理（Python实现）](https://blog.csdn.net/asialee_bird/article/details/80491256)   
+[hr-gith/Intrusion-Detector](https://github.com/hr-gith/Intrusion-Detector)   
+[XLab-Tongji/KDD-CUP99-Modeling](https://github.com/XLab-Tongji/KDD-CUP99-Modeling)
