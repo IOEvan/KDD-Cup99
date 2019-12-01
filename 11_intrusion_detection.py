@@ -1,3 +1,4 @@
+# 数据降维的时候，可以选择将数据分类型进行降维，也可以全部的降维，采用方法有ICA和PCA代码
 import pandas as pd
 import numpy as np
 from time import time
@@ -342,8 +343,10 @@ def main():
 
     i_detector = IntrusionDetector(kdd_data_path_train, kdd_data_path_test)
     i_detector.preprocessor()
+    # 数据降维的两种方法，分类型的降维
     # i_detector.feature_reduction_ICA()
     # i_detector.feature_reduction_PCA()
+    # 对所有数据进行的降维
     i_detector.format_data()
 
     while (True):
