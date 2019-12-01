@@ -14,7 +14,7 @@ from sklearn.metrics import precision_score,f1_score
 from keras.optimizers import Adam,SGD,sgd
 from keras.models import load_model
 from sklearn.metrics import accuracy_score, roc_curve, auc, roc_auc_score, confusion_matrix
-from sklearn.preprocessing import label_binarize
+from sklearn.preprocessing import label_binarize, StandardScaler
 
 # save loss and acc
 class LossHistory(ks.callbacks.Callback):
@@ -88,40 +88,16 @@ test_np_labels = np.array(test_labels)
 test_np_labels = np.array(test_np_labels, dtype = np.float)
 
 
-# Feature scaling
-for i in range(41):
-    d_min = min(np_features[:][i])
-    d_max = max(np_features[:][i])
-    np_features[:][i] -= d_min
-    np_features[:][i] /= d_max
-    test_d_min = min(test_np_features[:][i])
-    test_d_max = max(test_np_features[:][i])
-    test_np_features[:][i] -= test_d_min
-    test_np_features[:][i] /= test_d_max
+np_features = StandardScaler().fit_transform(np_features)
+test_np_features = StandardScaler().fit_transform(test_np_features)
 
-
-np_1000_features = np_features
-np_1000_labels = np_labels
 
 # data for Testing
-np_feature_test = test_np_features
-np_labels_test = test_np_labels
-
-labels_for_nn = []
-np_labels_test_nn = []
+labels_for_nn = label_binarize(np_labels, classes=[0, 1, 2])
+np_labels_test_nn = label_binarize(test_np_labels, classes=[0, 1, 2])
 
 
-for i in range(len(np_1000_labels)):
-    tmp_label = [0] * 3
-    tmp_label[int(np_1000_labels[i])] = 1
-    labels_for_nn.append(tmp_label)
-
-for i in range(len(np_feature_test)):
-    tmp_label = [0] * 3
-    tmp_label[int(np_labels_test[i])] = 1
-    np_labels_test_nn.append(tmp_label)
-
-train_data_num = int(len(np_1000_features) * 0.9)
+train_data_num = int(len(np_features) * 0.9)
 
 
 model = ks.models.Sequential()
@@ -141,10 +117,10 @@ history = LossHistory()
 
 model.compile(loss='categorical_crossentropy',optimizer='adadelta',metrics=['accuracy'])
 # model.fit(x=data_train,y=labels_train,batch_size=128,nb_epoch=5000,verbose=1,validation_data=(data_test,labels_test),callbacks=[history])
-model.fit(x=np_1000_features[:train_data_num],y=labels_for_nn[:train_data_num],batch_size=100,nb_epoch=20,verbose=1,validation_data=(np_1000_features[train_data_num:],labels_for_nn[train_data_num:]), callbacks=[history])
-history.loss_plot('epoch')
+model.fit(x=np_features[:train_data_num],y=labels_for_nn[:train_data_num],batch_size=100,nb_epoch=2,verbose=1,validation_data=(np_features[train_data_num:],labels_for_nn[train_data_num:]), callbacks=[history])
+# history.loss_plot('epoch')
 
-predicts = model.predict(np_feature_test)
+predicts = model.predict(test_np_features)
 np_labels_test_nn = np.array(np_labels_test_nn)
 
 fpr, tpr, roc_dict = {}, {}, {}
