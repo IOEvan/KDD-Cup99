@@ -75,7 +75,6 @@ def handleLabel(input):
 
 if __name__ == '__main__':
     start_time = time.clock()
-    label_list = []
     preHandel_data()
     end_time = time.clock()
     print("Running time:", (end_time - start_time))
