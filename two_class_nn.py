@@ -94,28 +94,22 @@ test_np_labels = np.array(test_np_labels, dtype = np.float)
 np_features = StandardScaler().fit_transform(np_features)
 test_np_features = StandardScaler().fit_transform(test_np_features)
 
-np_1000_features = np_features
-np_1000_labels = np_labels
-
-# data for Testing
-np_feature_test = test_np_features
-np_labels_test = test_np_labels
-
 labels_for_nn = []
 np_labels_test_nn = []
 
 
-for i in range(len(np_1000_labels)):
+for label in np_labels:
     tmp_label = [0] * 2
-    tmp_label[int(np_1000_labels[i])] = 1
+    tmp_label[int(label)] = 1
     labels_for_nn.append(tmp_label)
 
-for i in range(len(np_feature_test)):
+for label in test_np_labels:
     tmp_label = [0] * 2
-    tmp_label[int(np_labels_test[i])] = 1
+    tmp_label[int(label)] = 1
     np_labels_test_nn.append(tmp_label)
 
-train_data_num = int(len(np_1000_features) * 0.8)
+
+train_data_num = int(len(np_features) * 0.8)
 
 
 model = ks.models.Sequential()
@@ -135,10 +129,10 @@ history = LossHistory()
 
 model.compile(loss='categorical_crossentropy',optimizer='adadelta',metrics=['accuracy'])
 # model.fit(x=data_train,y=labels_train,batch_size=128,nb_epoch=5000,verbose=1,validation_data=(data_test,labels_test),callbacks=[history])
-model.fit(x=np_1000_features[:train_data_num],y=labels_for_nn[:train_data_num],batch_size=100,nb_epoch=2,verbose=1,validation_data=(np_1000_features[train_data_num:],labels_for_nn[train_data_num:]), callbacks=[history])
+model.fit(x=np_features[:train_data_num],y=labels_for_nn[:train_data_num],batch_size=100,nb_epoch=2,verbose=1,validation_data=(np_features[train_data_num:],labels_for_nn[train_data_num:]), callbacks=[history])
 # history.loss_plot('epoch')
 
-predicts = model.predict(np_feature_test)
+predicts = model.predict(test_np_features)
 np_labels_test_nn = np.array(np_labels_test_nn)
 # Y_pred = [np.argmax(y) for y in predicts]
 # Y_valid = [np.argmax(y) for y in np_labels_test_nn]
