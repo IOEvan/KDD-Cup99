@@ -153,7 +153,7 @@ class IntrusionDetector:
         kdd_test_data = np.concatenate([kdd_test_data, self.test_kdd_label_2classes], axis=1)
         self.X_train, self.X_test, y_train, y_test = kdd_train_data[:, :-1], kdd_test_data[:, :-1], kdd_train_data[:,-1], kdd_test_data[:, -1]
 
-        data_pca = sklearnPCA(n_components=1)
+        data_pca = sklearnPCA(n_components=15)
         data_pca = data_pca.fit(self.X_train)
         # numeric_pca = numeric_pca.fit(np.concatenate((self.train_kdd_numeric, self.test_kdd_numeric), axis=0))
         self.X_train = data_pca.transform(self.X_train)
