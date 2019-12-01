@@ -1,4 +1,3 @@
-# load data (10%)
 import pandas
 from pylab import *
 import keras as ks
@@ -112,7 +111,6 @@ labels_for_nn = []
 np_labels_test_nn = []
 
 
-
 for i in range(len(np_1000_labels)):
     tmp_label = [0] * 3
     tmp_label[int(np_1000_labels[i])] = 1
@@ -169,16 +167,3 @@ plt.title('Some extension of Receiver operating characteristic to multi-class')
 plt.legend(loc="lower right")
 plt.savefig('3_Log_ROC_DNN')
 plt.show()
-
-# plt.figure()
-# plt.plot(fpr, tpr, label='DNN Model  area = {:.3f})'.format(auc))
-#
-# plt.plot([0, 1], [0, 1], 'r--')
-# plt.xlim([0.0, 1.0])
-# plt.ylim([0.0, 1.05])
-# plt.xlabel('False Positive Rate')
-# plt.ylabel('True Positive Rate')
-# plt.title('Receiver operating characteristic')
-# plt.legend(loc="lower right")
-# plt.savefig('Log_ROC_DNN')
-# plt.show()
