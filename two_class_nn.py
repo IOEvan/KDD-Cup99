@@ -1,4 +1,3 @@
-# load data (10%)
 import pandas
 from pylab import *
 import keras as ks
@@ -75,18 +74,7 @@ kdd_data_10percent = pandas.read_csv("kddcup.data_10_percent_corrected.csv", hea
 kdd_data_test = pandas.read_csv("corrected.csv", header=None, names = col_names)
 kdd_data_10percent.describe()
 
-# num_features = [
-#     "duration","src_bytes",
-#     "dst_bytes","land","wrong_fragment","urgent","hot","num_failed_logins",
-#     "logged_in","num_compromised","root_shell","su_attempted","num_root",
-#     "num_file_creations","num_shells","num_access_files","num_outbound_cmds",
-#     "is_host_login","is_guest_login","count","srv_count","serror_rate",
-#     "srv_serror_rate","rerror_rate","srv_rerror_rate","same_srv_rate",
-#     "diff_srv_rate","srv_diff_host_rate","dst_host_count","dst_host_srv_count",
-#     "dst_host_same_srv_rate","dst_host_diff_srv_rate","dst_host_same_src_port_rate",
-#     "dst_host_srv_diff_host_rate","dst_host_serror_rate","dst_host_srv_serror_rate",
-#     "dst_host_rerror_rate","dst_host_srv_rerror_rate"
-# ]
+
 features = kdd_data_10percent[col_names[:-1]].astype(float)
 np_features = np.array(features)
 test_features = kdd_data_test[col_names[:-1]].astype(float)
@@ -94,31 +82,15 @@ test_np_features = np.array(test_features)
 
 # labels
 labels = kdd_data_10percent['label'].copy()
-# labels[labels!='normal.'] = 'attack.'
 np_labels = np.array(labels)
-# np_labels[np_labels == 'normal.'] = 0
-# np_labels[np_labels == 'attack.'] = 1
 np_labels = np.array(np_labels, dtype = np.float)
 
 test_labels = kdd_data_test['label'].copy()
-# test_labels[test_labels!='normal.'] = 'attack.'
 test_np_labels = np.array(test_labels)
-# test_np_labels[test_np_labels == 'normal.'] = 0
-# test_np_labels[test_np_labels == 'attack.'] = 1
 test_np_labels = np.array(test_np_labels, dtype = np.float)
 
 
 # Feature scaling
-# for i in range(41):
-#     d_min = min(np_features[:][i])
-#     d_max = max(np_features[:][i])
-#     np_features[:][i] -= d_min
-#     np_features[:][i] /= d_max
-#     test_d_min = min(test_np_features[:][i])
-#     test_d_max = max(test_np_features[:][i])
-#     test_np_features[:][i] -= test_d_min
-#     test_np_features[:][i] /= test_d_max
-
 np_features = StandardScaler().fit_transform(np_features)
 test_np_features = StandardScaler().fit_transform(test_np_features)
 
